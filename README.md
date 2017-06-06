@@ -1,6 +1,6 @@
 # github.com/bbengfort/x
 
-**Go packages that are common to many of my projects -- in the spirit of golang.org/x**
+**Go packages that are common to many of my projects &mdash; in the spirit of golang.org/x**
 
 ## Usage
 
@@ -21,4 +21,4 @@ $ go get github.com/onsi/ginkgo/ginkgo
 $ go get github.com/onsi/gomega
 ```
 
-This will install the libraries as well as the runner executables. 
+This will install the libraries as well as the runner executables.
