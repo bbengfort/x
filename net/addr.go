@@ -1,13 +1,19 @@
 package net
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"net"
+	"net/http"
+	"time"
 )
 
-// DefaultPort is used to compute the TCP address in the absense of one.
-const DefaultPort = 3265
+// DefaultPort is used to allocate a port for services on the network when
+// not specified directly. The port number refers to our office in A.V.
+// Williams during graduate school and we've commonly used it in many
+// applications. The DefaultPort is primarily used in ResolveAddr.
+const DefaultPort = 3264
 
 // ExternalIP looks up an the first available external IP address used by
 // local network interfaces. This function returns a string representation of
@@ -17,7 +23,7 @@ const DefaultPort = 3265
 // rather non-local or loopback addresses on the machine. If the machine
 // receives an internal DHCP provied IP address, then this function will
 // detect that, not the IP address of the router. To find the publically
-// accessible IP address of the machine use PublicIP().
+// accessible IP address of the machine use PublicIP.
 func ExternalIP() (string, error) {
 
 	// Get addresses for the interface
@@ -78,4 +84,52 @@ func ResolveAddr(addr string) (string, error) {
 	}
 
 	return tcpAddr.String(), nil
+}
+
+// PublicIP makes an external HTTP request to myexternalip.com in order to
+// discover the publically available IP address of the machine. This is
+// especially useful when the machine sits behind a NAT device such as a
+// router that performs port forwarding.
+//
+// NOTE: the myexternalip.com service maintains a rate limit of 30 requests
+// per minute, do not exceed it!
+func PublicIP() (string, error) {
+	// Conduct the request with a 5 second timeout
+	client := &http.Client{Timeout: time.Second * 5}
+	resp, err := client.Get("http://myexternalip.com/json")
+	if err != nil {
+		return "", err
+	}
+
+	// Ensure connection is closed on complete
+	defer resp.Body.Close()
+
+	// Check the status from the client
+	if resp.StatusCode != 200 {
+		if resp.StatusCode == 429 {
+			return "", fmt.Errorf(
+				"received staus %s: rate limit of 30 requests per minute exceeded",
+				resp.Status,
+			)
+		}
+
+		return "", fmt.Errorf(
+			"could not lookup public IP address: %s", resp.Status,
+		)
+	}
+
+	// Parse the body of the response
+	data := make(map[string]interface{})
+	if err := json.NewDecoder(resp.Body).Decode(&data); err != nil {
+		return "", err
+	}
+
+	// Get the IP address
+	ipaddr, ok := data["ip"]
+	if !ok {
+		return "", errors.New("could not find IP address in response")
+	}
+
+	return ipaddr.(string), nil
+
 }

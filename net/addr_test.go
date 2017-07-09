@@ -83,4 +83,14 @@ var _ = Describe("Addr", func() {
 
 	})
 
+	Describe("PublicIP", func() {
+
+		It("should fetch the external IP address of the host", func() {
+			ipaddr, err := PublicIP()
+			Ω(err).ShouldNot(HaveOccurred())
+			Ω(ipaddr).ShouldNot(BeEmpty())
+		})
+
+	})
+
 })
