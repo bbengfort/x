@@ -1,4 +1,4 @@
-// Package cfrv implements onflict-free replicated versions of multiple types.
+// Package cfrv implements conflict-free replicated versions of multiple types.
 // A conflict-free version number implemented on a distributed system means
 // that two versions can be concurrently generated but still be ordered.
 // Unlike auto-incrementing primary keys or sequences, this means that
