@@ -1,0 +1,49 @@
+{
+	"info": {
+		"num_replicas": 6,
+		"updated": "2017-07-10T01:36:41.529Z"
+	},
+	"replicas": [{
+		"pid": 1,
+		"name": "alpha",
+		"address": "alpha.example.com:3264",
+		"host": "alpha.example.com",
+		"ipaddr": "10.10.10.1",
+		"port": 3264
+	}, {
+		"pid": 10,
+		"name": "bravo-10",
+		"address": "bravo.example.com:3264",
+		"host": "bravo.example.com",
+		"ipaddr": "10.10.10.2",
+		"port": 3264
+	}, {
+		"pid": 11,
+		"name": "bravo-11",
+		"address": "bravo.example.com:3265",
+		"host": "bravo.example.com",
+		"ipaddr": "10.10.10.2",
+		"port": 3265
+	}, {
+		"pid": 12,
+		"name": "bravo-12",
+		"address": "bravo.example.com:3266",
+		"host": "bravo.example.com",
+		"ipaddr": "10.10.10.2",
+		"port": 3266
+	}, {
+		"pid": 20,
+		"name": "charlie",
+		"address": "charlie.example.com:3264",
+		"host": "charlie.example.com",
+		"ipaddr": "10.10.10.3",
+		"port": 3264
+	}, {
+		"pid": 30,
+		"name": "delta",
+		"address": "delta.example.com:3264",
+		"host": "delta.example.com",
+		"ipaddr": "10.10.10.4",
+		"port": 3264
+	}]
+}

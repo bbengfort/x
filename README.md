@@ -27,6 +27,7 @@ Generally speaking, these things are simply ported out of my other applications 
 This is a single repository that stores many, independent subpackages. This list changes often as common code gets moved from specific projects into this repository.
 
 - [net](net/README.md): additional networking packages
+- [peers](peers/README.md): defines and synchronizes remote peers on the network
 
 ### Under Development
 
