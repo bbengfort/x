@@ -32,9 +32,12 @@ package peers
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"strings"
+	"time"
 )
 
 // Load is the primary entry point for the peers package. It uses a list of
@@ -63,6 +66,60 @@ func Load() *Peers {
 	}
 
 	return peers
+}
+
+// Sync is a helper function that performs a SyncFrom() but looks up the
+// url and api key from the environment, expecting the following:
+//
+// - $PEERS_SYNC_URL: url endpoint for sync GET request
+// - $PEERS_SYNC_APIKEY: key to add to headers as X-Api-Key
+//
+// See the SyncFrom function for more details.
+func Sync() (*Peers, error) {
+	url := os.Getenv("PEERS_SYNC_URL")
+	if url == "" {
+		return nil, errors.New("could not find $PEERS_SYNC_URL")
+	}
+
+	key := os.Getenv("PEERS_SYNC_APIKEY")
+	if key == "" {
+		return nil, errors.New("could not find $PEERS_SYNC_APIKEY")
+	}
+
+	return SyncFrom(url, key)
+}
+
+// SyncFrom is a remote entry point for the peers package. It uses an HTTP
+// request to synchronize the peers from a remote host and instantiate the
+// peers collection. It expects a url and an api key to perform the GET
+// request, adding the api key to the headers as "X-Api-Key".
+func SyncFrom(url, apikey string) (*Peers, error) {
+	// Conduct the request with a 5 second timeout
+	client := &http.Client{Timeout: time.Second * 5}
+	req, _ := http.NewRequest("GET", url, nil)
+	req.Header.Set("X-Api-Key", apikey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
+	// Ensure connection is closed on complete
+	defer resp.Body.Close()
+
+	// Check the status from the client
+	if resp.StatusCode != 200 {
+		return nil, fmt.Errorf(
+			"could not synchronize peers: %s", resp.Status,
+		)
+	}
+
+	// Parse the body of the response
+	peers := new(Peers)
+	if err := json.NewDecoder(resp.Body).Decode(&peers); err != nil {
+		return nil, err
+	}
+	return peers, nil
 }
 
 //===========================================================================
