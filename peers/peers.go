@@ -36,6 +36,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strings"
 	"time"
 )
@@ -169,6 +170,11 @@ func (p *Peers) Dump(path string) error {
 			return errors.New("no path specified to dump peers.json to")
 		}
 		path = p.path
+	}
+
+	// Make sure the directory exists.
+	if err := os.MkdirAll(filepath.Dir(path), 0755); err != nil {
+		return err
 	}
 
 	// Marshal the JSON data
