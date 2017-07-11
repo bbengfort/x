@@ -11,6 +11,26 @@ const dirname = "fluidfs"
 const filename = "peers.json"
 
 //===========================================================================
+// Path Lookup
+//===========================================================================
+
+// Path returns the recommended location to store a peers.json file for
+// external services to use. It returns the environment peers path if it
+// exists, otherwise the user peers path. If there is no user directory, then
+// it falls back on the system peers path.
+func Path() string {
+	if path := envPeers(); path != "" {
+		return path
+	}
+
+	if path := userPeers(); path != "" {
+		return path
+	}
+
+	return systemPeers()
+}
+
+//===========================================================================
 // Functions that return lookup paths
 //===========================================================================
 
