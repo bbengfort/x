@@ -96,7 +96,7 @@ func ResolveAddr(addr string) (string, error) {
 func PublicIP() (string, error) {
 	// Conduct the request with a 5 second timeout
 	client := &http.Client{Timeout: time.Second * 5}
-	resp, err := client.Get("http://myexternalip.com/json")
+	resp, err := client.Get("http://ipv4.myexternalip.com/json")
 	if err != nil {
 		return "", err
 	}
