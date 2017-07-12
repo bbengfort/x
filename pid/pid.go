@@ -80,7 +80,7 @@ func (pid *PID) Save() error {
 func (pid *PID) Load() error {
 	data, err := ioutil.ReadFile(pid.Path())
 	if err != nil {
-		return fmt.Errorf("no PID file exists at %s; kekahu not running?", pid.Path())
+		return fmt.Errorf("no PID file exists at %s; process not running?", pid.Path())
 	}
 
 	return json.Unmarshal(data, &pid)

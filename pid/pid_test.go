@@ -1,7 +1,6 @@
 package pid
 
 import (
-	"encoding/json"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -166,44 +165,38 @@ func TestSingleProcess(t *testing.T) {
 
 // Test that a PID can be loaded from an existing file
 func TestLoad(t *testing.T) {
-	if err := makeTmpDir(); err != nil {
-		t.Fatal(err)
-	}
-	defer removeTmpDir()
-
-	path := filepath.Join(tmpDir, "test.pid")
-
-	// Write a test PID file
-	testData := map[string]int{
-		"pid":  23,
-		"ppid": 22,
-		"port": 50800,
-	}
-
-	// Write the test data as JSON
-	data, err := json.Marshal(testData)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	// And spit it out to a file.
-	if err = ioutil.WriteFile(path, data, 0644); err != nil {
-		t.Fatal(err)
-	}
-
 	// Create a new PID and make sure it has no data
-	pid := New(path)
+	pid := New("testdata/test.pid")
 	if pid.PID != 0 || pid.PPID != 0 {
 		t.Error("data exists in PID before load")
 	}
 
 	// Load the PID file
-	if err = pid.Load(); err != nil {
+	if err := pid.Load(); err != nil {
 		t.Error(err)
 	}
 
-	if pid.PID == 0 || pid.PPID == 0 {
+	if pid.PID != 42 || pid.PPID != 7 {
 		t.Error("data does not exist in PID after load")
+	}
+}
+
+// Test that a PID cannot be loadeded from a missing file
+func TestLoadMissing(t *testing.T) {
+	// Create a new PID and make sure it has no data
+	pid := New("testdata/missing.pid")
+	if pid.PID != 0 || pid.PPID != 0 {
+		t.Error("data exists in PID before load")
+	}
+
+	// Ensure the path doesn't exist
+	if exists, _ := pathExists("testdata/missing.pid"); exists {
+		t.Fatal("missing path exists somehow, test will fail")
+	}
+
+	// Load the PID file
+	if err := pid.Load(); err == nil {
+		t.Error("managed to load a missing pid file without error")
 	}
 }
 
