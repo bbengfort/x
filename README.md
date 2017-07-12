@@ -29,6 +29,7 @@ This is a single repository that stores many, independent subpackages. This list
 - [net](net/README.md): additional networking packages
 - [peers](peers/README.md): defines and synchronizes remote peers on the network
 - [pid](pid/README.md): manages pid files and background processes
+- [noplog](noplog/README.md): no operation logger to capture internal logging 
 
 ### Under Development
 

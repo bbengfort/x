@@ -240,3 +240,16 @@ type Peer struct {
 	IPAddr string `json:"ipaddr"`  // the ip address of the peer
 	Port   uint16 `json:"port"`    // the port the replica is listening on
 }
+
+// IsLocal returns True if the Peer has the same hostname as the localhost.
+// Because the host can be specified as a FQDN, this method splits the name
+// on "." and inspects the first element of the name.
+func (p *Peer) IsLocal() bool {
+	hostname, err := os.Hostname()
+	if err != nil {
+		return false
+	}
+
+	name := strings.Split(p.Host, ".")[0]
+	return name == hostname
+}
