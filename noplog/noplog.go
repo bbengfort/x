@@ -1,7 +1,8 @@
 /*
-Package noplog implements a noop logger with a null writer that
-implements the io.Write interface but does not do anything. All logging
-function definitions are empty noops.
+Package noplog implements a noop logger with a null writer.
+
+The writer implements the io.Write interface but does not do anything.
+All logging function definitions are empty noops.
 
 Common use:
 

@@ -69,6 +69,14 @@ func Load() *Peers {
 	return peers
 }
 
+// LoadFrom is a secondary entry point for the peers package. It requires a
+// specific path and if there are any errors loading, the error is returned.
+func LoadFrom(path string) (*Peers, error) {
+	peers := new(Peers)
+	err := peers.Load(path)
+	return peers, err
+}
+
 // Sync is a helper function that performs a SyncFrom() but looks up the
 // url and api key from the environment, expecting the following:
 //
@@ -226,6 +234,18 @@ func (p *Peers) Localhost(hostname string, pid uint16) (*Peer, error) {
 	return nil, errors.New("could not find a matching localhost")
 }
 
+// Get a specific peer by name (which should be unique). If the named peer is
+// not found, then an error is returned.
+func (p *Peers) Get(hostname string) (*Peer, error) {
+	for _, peer := range p.Peers {
+		if peer.Name == hostname {
+			return peer, nil
+		}
+	}
+
+	return nil, fmt.Errorf("could not find a peer named '%s'", hostname)
+}
+
 //===========================================================================
 // Peer Struct
 //===========================================================================
@@ -252,4 +272,23 @@ func (p *Peer) IsLocal() bool {
 
 	name := strings.Split(p.Host, ".")[0]
 	return name == hostname
+}
+
+// ZMQEndpoint returns an endpoing to bind or connect on specifically for the
+// ZMQ protocol, that is a TCP protocol socket on the specified port.
+//
+// If server is true, then a bind address of tcp://*:port is returned so that
+// messages received on any IP address at that port are handled. If server is
+// false then one of two things happen. If the peer IsLocal() then
+// tcp://localhost:port is returned. Otherwise tcp://IPAddr:port is returned.
+func (p *Peer) ZMQEndpoint(server bool) string {
+	if server {
+		return fmt.Sprintf("tcp://*:%d", p.Port)
+	}
+
+	if p.IsLocal() {
+		return fmt.Sprintf("tcp://localhost:%d", p.Port)
+	}
+
+	return fmt.Sprintf("tcp://%s:%d", p.IPAddr, p.Port)
 }
