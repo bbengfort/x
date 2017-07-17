@@ -22,7 +22,7 @@ type Version struct {
 }
 
 // ParseVersion converts a version string into a version object.
-func ParseVersion(s string) (Version, error) {
+func ParseVersion(s string) (*Version, error) {
 	parts := strings.Split(s, ".")
 	if len(parts) != 2 {
 		return NullVersion, fmt.Errorf("incorrect number of version components, could not parse '%s'", s)
@@ -38,7 +38,7 @@ func ParseVersion(s string) (Version, error) {
 		return NullVersion, fmt.Errorf("could not parse pid component: '%s'", parts[1])
 	}
 
-	return Version{scalar, pid}, nil
+	return &Version{scalar, pid}, nil
 }
 
 // String returns a parsable representation of the version number.
