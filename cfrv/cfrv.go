@@ -18,21 +18,22 @@
 package cfrv
 
 //===========================================================================
-// Version and Factory Interfaces
+// CFRV and Factory Interfaces
 //===========================================================================
 
-// Version describes the behavior of a conflict-free replicated version data
+// CFRV describes the behavior of a conflict-free replicated version data
 // structure, particularly the methods for comparing two versions to each
 // other to order the versions. All CFRVs must implement this interface to be
 // used interchangeably in systems with varying requirements.
-type Version interface {
-	IsZero() bool                    // Returns true if the version is the zero value
-	Equals(other Version) bool       // Returns true if version == other
-	Greater(other Version) bool      // Returns true if version > other
-	GreaterEqual(other Version) bool // Returns true if version >= other
-	Lesser(other Version) bool       // Returns true if version < other
-	LesserEqual(other Version) bool  // Returns true if version <= other
-	String() string                  // Returns a parseable string representation of the version
+type CFRV interface {
+	IsZero() bool                 // Returns true if the version is the zero value
+	Equals(other CFRV) bool       // Returns true if version == other
+	Greater(other CFRV) bool      // Returns true if version > other
+	GreaterEqual(other CFRV) bool // Returns true if version >= other
+	Lesser(other CFRV) bool       // Returns true if version < other
+	LesserEqual(other CFRV) bool  // Returns true if version <= other
+	String() string               // Returns a parseable string representation of the version
+	Parse(s string) error         // Parses the string into the version struct
 }
 
 // Factory describes the behavior of a datastructure that generates conflict-
@@ -42,6 +43,7 @@ type Version interface {
 // therefore they must identify the object by a unique name, the key. Factories
 // that don't support keys can simply accept an empty string.
 type Factory interface {
-	Next(key string) *Version         // return the next version for the given key
-	Update(key string, vers *Version) // update the state of the factory with the given version
+	Next() CFRV                   // return the next version for the given key
+	Update(vers CFRV)             // update the state of the factory with the given version
+	Parse(s string) (CFRV, error) // parse the version from a string and return
 }
