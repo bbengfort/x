@@ -25,17 +25,17 @@ type Version struct {
 func ParseVersion(s string) (*Version, error) {
 	parts := strings.Split(s, ".")
 	if len(parts) != 2 {
-		return NullVersion, fmt.Errorf("incorrect number of version components, could not parse '%s'", s)
+		return &NullVersion, fmt.Errorf("incorrect number of version components, could not parse '%s'", s)
 	}
 
 	scalar, err := strconv.ParseUint(parts[0], 10, 64)
 	if err != nil {
-		return NullVersion, fmt.Errorf("could not parse scalar component: '%s'", parts[0])
+		return &NullVersion, fmt.Errorf("could not parse scalar component: '%s'", parts[0])
 	}
 
 	pid, err := strconv.ParseUint(parts[1], 10, 64)
 	if err != nil {
-		return NullVersion, fmt.Errorf("could not parse pid component: '%s'", parts[1])
+		return &NullVersion, fmt.Errorf("could not parse pid component: '%s'", parts[1])
 	}
 
 	return &Version{scalar, pid}, nil
