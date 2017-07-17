@@ -18,7 +18,7 @@ var NullVersion = Version{0, 0}
 // Version implements conflict-free or concurrent versioning for objects.
 type Version struct {
 	Scalar uint64 // monotonically increasing scalar version number (starts at one)
-	PID    uint64 // process identifier for tie-breaks (should not be zero)
+	PID    uint16 // process identifier for tie-breaks (should not be zero)
 }
 
 // ParseVersion converts a version string into a version object.
@@ -33,12 +33,12 @@ func ParseVersion(s string) (*Version, error) {
 		return &NullVersion, fmt.Errorf("could not parse scalar component: '%s'", parts[0])
 	}
 
-	pid, err := strconv.ParseUint(parts[1], 10, 64)
+	pid, err := strconv.ParseUint(parts[1], 10, 16)
 	if err != nil {
 		return &NullVersion, fmt.Errorf("could not parse pid component: '%s'", parts[1])
 	}
 
-	return &Version{scalar, pid}, nil
+	return &Version{scalar, uint16(pid)}, nil
 }
 
 // String returns a parsable representation of the version number.
@@ -121,7 +121,7 @@ func (v Version) LesserEqual(o *Version) bool {
 // per-key basis. Implements Lamport scalar versioning. Note that the factory
 // is not thread-safe and should be used in a thread-safe object.
 type VersionFactory struct {
-	pid    uint64            // the current process id
+	pid    uint16            // the current process id
 	latest map[string]uint64 // map of keys to latest seen scalar
 }
 
