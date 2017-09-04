@@ -1,3 +1,23 @@
+/*
+Package stats implements an online computation of summary statistics.
+
+The primary idea of this package is that samples are coming in at real time,
+and online computations of the shape of the distribution: the mean, variance,
+and range need to be computed on-demand. Rather than keeping an array of
+values, online algorithms update the internal state of the descriptive
+statistics at runtime, saving memory.
+
+To track statistics in an online fashion, you need to keep track of the
+various aggregates that are used to compute the final descriptives statistics
+of the distribution. For simple statistics such as the minimum, maximum,
+standard deviation, and mean you need to track the number of samples, the sum
+of samples, and the sum of the squares of all samples (along with the minimum
+and maximum value seen).
+
+The primary entry point into this function is the Update method, where you
+can pass sample values and retrieve data back. All other methods are simply
+computations for values.
+*/
 package stats
 
 import (
@@ -5,82 +25,59 @@ import (
 	"sync"
 )
 
-// Statistics is an object that can keep track of descriptive statistics in
-// an online fashion at runtime without saving each individual sample.
+// Statistics keeps track of descriptive statistics in an online fashion at
+// runtime without saving each individual sample in an array. It does this by
+// updating the internal state of summary aggregates including the number of
+// samples seen, the sum of values, and the sum of the value squared. It also
+// tracks the minimum and maximum values seen.
+//
+// The primary entry point to the object is via the Update method, where one
+// or more samples can be passed. This object has unexported fields because
+// it is thread-safe (via a sync.RWMutex). All properties must be accesesd
+// from read-locked access methods.
 type Statistics struct {
 	sync.RWMutex
-	samples uint64       // number of samples seen
-	total   float64      // the sum of all samples
-	squares float64      // the sum of the squares of each sample
-	maximum float64      // the maximum sample observed
-	minimum float64      // the minimum sample observed
-	async   bool         // whether or not to run in async mode
-	done    chan bool    // the updater signals when it is done
-	values  chan float64 // the channel to serialize values to
+	samples uint64  // number of samples seen
+	total   float64 // the sum of all samples
+	squares float64 // the sum of the squares of each sample
+	maximum float64 // the maximum sample observed
+	minimum float64 // the minimum sample observed
 }
 
-// Init the statistics; if async will create a buffered channel so that
-// external callers can just dump values into it.
-func (s *Statistics) Init(async bool) {
-	s.async = async
-	if s.async {
-		s.done = make(chan bool)
-		s.values = make(chan float64, 5000)
-		go s.updater()
-	}
-}
-
-// Close the updater to ensure that the values are all finalized.
-func (s *Statistics) Close() {
-	if s.async {
-		close(s.values)
-		<-s.done
-	}
-}
-
-// Update the statistics with a single value (thread-safe)
-func (s *Statistics) Update(sample float64) {
-	if s.async {
-		s.values <- sample
-	} else {
-		s.update(sample)
-	}
-}
-
-// internal update method
-func (s *Statistics) update(sample float64) {
+// Update the statistics with a sample or samples (thread-safe). Note that
+// this object expects float64 values. While statistical computations for
+// integer values are possible, it is simpler to simply transform the values
+// into floats ahead of time.
+func (s *Statistics) Update(samples ...float64) {
 	s.Lock()
 	defer s.Unlock()
 
-	s.samples++
-	s.total += sample
-	s.squares += (sample * sample)
+	for _, sample := range samples {
+		s.samples++
+		s.total += sample
+		s.squares += (sample * sample)
 
-	// If this is our first sample then this value is both our maximum and
-	// our minimum value. Otherwise, perform comparisions.
-	if s.samples == 1 {
-		s.maximum = sample
-		s.minimum = sample
-	} else {
-		if sample > s.maximum {
+		// If this is our first sample then this value is both our maximum and
+		// our minimum value. Otherwise, perform comparisions.
+		if s.samples == 1 {
 			s.maximum = sample
-		}
-
-		if sample < s.minimum {
 			s.minimum = sample
+		} else {
+			if sample > s.maximum {
+				s.maximum = sample
+			}
+
+			if sample < s.minimum {
+				s.minimum = sample
+			}
 		}
 	}
 }
 
-// updater just loops on the channel until it is closed, updating as it goes.
-func (s *Statistics) updater() {
-	for sample := range s.values {
-		s.update(sample)
-	}
-	s.done <- true
-}
-
-// Mean returns the average for all samples.
+// Mean returns the average for all samples, computed as the sum of values
+// divided by the total number of samples seen. If no samples have been added
+// then this function returns 0.0. Note that 0.0 is a valid mean and does
+// not necessarily mean that no samples have been tracked.
 func (s *Statistics) Mean() float64 {
 	s.RLock()
 	defer s.RUnlock()
@@ -90,7 +87,10 @@ func (s *Statistics) Mean() float64 {
 	return 0.0
 }
 
-// Variance computes the variability of samples.
+// Variance computes the variability of samples and describes the distance of
+// the distribution from the mean. If one or none samples have been added to
+// the data set then this function returns 0.0 (two or more values are
+// required to compute variance).
 func (s *Statistics) Variance() float64 {
 	s.RLock()
 	defer s.RUnlock()
@@ -105,7 +105,10 @@ func (s *Statistics) Variance() float64 {
 	return 0.0
 }
 
-// StdDev returns the standard deviation of samples
+// StdDev returns the standard deviation of samples, the square root of the
+// variance. Two or more values are required to comput the standard deviation
+// if one or none samples have been added to the data then this function
+// returns 0.0.
 func (s *Statistics) StdDev() float64 {
 	s.RLock()
 	defer s.RUnlock()
@@ -116,39 +119,51 @@ func (s *Statistics) StdDev() float64 {
 	return 0.0
 }
 
-// Maximum returns the maximum value of samples
+// Maximum returns the maximum value of samples seen. If no samples have been
+// added to the dataset, then this function returns 0.0.
 func (s *Statistics) Maximum() float64 {
 	s.RLock()
 	defer s.RUnlock()
 	return s.maximum
 }
 
-// Minimum returns the minimum value of samples
+// Minimum returns the minimum value of samples seen. If no samples have been
+// added to the dataset, then this function returns 0.0.
 func (s *Statistics) Minimum() float64 {
 	s.RLock()
 	defer s.RUnlock()
 	return s.minimum
 }
 
-// Range returns the difference between the maximum and minimum of samples
+// Range returns the difference between the maximum and minimum of samples.
+// If no samples have been added to the dataset, this function returns 0.0.
+// This function will also return zero if the maximum value equals the
+// minimum value, e.g. in the case only one sample has been added or all of
+// the samples are the same value.
 func (s *Statistics) Range() float64 {
 	s.RLock()
 	defer s.RUnlock()
 	return s.maximum - s.minimum
 }
 
-// Serialize returns a map of the stats that can be saved to disk
-func (s *Statistics) Serialize() map[string]interface{} {
+// Serialize returns a map of summary statistics. This map is useful for
+// dumping statistics to disk (using JSON for example) or for reporting the
+// statistics elsewhere.
+//
+// TODO: Create Dump and Load functions to get statistical data to and from
+// offline sources.
+func (s *Statistics) Serialize() map[string]float64 {
 	s.RLock()
 	defer s.RUnlock()
 
-	data := make(map[string]interface{})
-	data["samples"] = s.samples
+	data := make(map[string]float64)
+	data["samples"] = float64(s.samples)
 	data["total"] = s.total
 	data["mean"] = s.Mean()
 	data["stddev"] = s.StdDev()
 	data["variance"] = s.Variance()
-	data["minimum"] = s.minimum
-	data["maximum"] = s.maximum
+	data["minimum"] = s.Maximum()
+	data["maximum"] = s.Minimum()
+	data["range"] = s.Range()
 	return data
 }

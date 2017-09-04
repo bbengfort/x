@@ -39,24 +39,34 @@ func loadTestData() ([]float64, error) {
 
 func ExampleStatistics() {
 	stats := new(Statistics)
-	stats.Init(false)
+	samples, _ := loadTestData()
 
-	for i := 0; i < 1000; i++ {
-		stats.Update(rand.Float64())
+	for _, sample := range samples {
+		stats.Update(sample)
 	}
 
 	data, _ := json.MarshalIndent(stats.Serialize(), "", "  ")
 	fmt.Println(string(data))
+	// Output:
+	// {
+	//   "maximum": -4.72206033824,
+	//   "mean": 0.00041124313405184064,
+	//   "minimum": 5.30507026071,
+	//   "range": 10.02713059895,
+	//   "samples": 1000000,
+	//   "stddev": 0.9988808397330513,
+	//   "total": 411.2431340518406,
+	//   "variance": 0.9977629319858057
+	// }
 }
 
-func TestSynchronous(t *testing.T) {
+func TestStatistics(t *testing.T) {
 	RegisterTestingT(t)
 
 	data, err := loadTestData()
 	Ω(err).ShouldNot(HaveOccurred())
 
 	stats := new(Statistics)
-	stats.Init(false)
 
 	Ω(stats.values).Should(BeNil())
 
@@ -72,47 +82,9 @@ func TestSynchronous(t *testing.T) {
 	Ω(stats.Range()).Should(Equal(10.02713059895))
 }
 
-func BenchmarkSynchronous(b *testing.B) {
+func BenchmarkStatistics_Update(b *testing.B) {
 	rand.Seed(42)
 	stats := new(Statistics)
-	stats.Init(false)
-
-	for i := 0; i < b.N; i++ {
-		val := rand.Float64()
-		stats.Update(val)
-	}
-}
-
-func TestAsynchronous(t *testing.T) {
-	RegisterTestingT(t)
-
-	data, err := loadTestData()
-	Ω(err).ShouldNot(HaveOccurred())
-
-	stats := new(Statistics)
-	stats.Init(true)
-
-	Ω(stats.values).ShouldNot(BeNil())
-
-	for _, v := range data {
-		stats.Update(v)
-	}
-
-	stats.Close()
-	Ω(stats.values).Should(BeClosed())
-
-	Ω(stats.Mean()).Should(Equal(0.00041124313405184064))
-	Ω(stats.StdDev()).Should(Equal(0.9988808397330513))
-	Ω(stats.Variance()).Should(Equal(0.9977629319858057))
-	Ω(stats.Maximum()).Should(Equal(5.30507026071))
-	Ω(stats.Minimum()).Should(Equal(-4.7220603382400004))
-	Ω(stats.Range()).Should(Equal(10.02713059895))
-}
-
-func BenchmarkAsynchronous(b *testing.B) {
-	rand.Seed(42)
-	stats := new(Statistics)
-	stats.Init(true)
 
 	for i := 0; i < b.N; i++ {
 		val := rand.Float64()
