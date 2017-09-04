@@ -68,11 +68,26 @@ func TestStatistics(t *testing.T) {
 
 	stats := new(Statistics)
 
-	Ω(stats.values).Should(BeNil())
-
 	for _, v := range data {
 		stats.Update(v)
 	}
+
+	Ω(stats.Mean()).Should(Equal(0.00041124313405184064))
+	Ω(stats.StdDev()).Should(Equal(0.9988808397330513))
+	Ω(stats.Variance()).Should(Equal(0.9977629319858057))
+	Ω(stats.Maximum()).Should(Equal(5.30507026071))
+	Ω(stats.Minimum()).Should(Equal(-4.7220603382400004))
+	Ω(stats.Range()).Should(Equal(10.02713059895))
+}
+
+func TestStatisticsBulk(t *testing.T) {
+	RegisterTestingT(t)
+
+	data, err := loadTestData()
+	Ω(err).ShouldNot(HaveOccurred())
+
+	stats := new(Statistics)
+	stats.Update(data...)
 
 	Ω(stats.Mean()).Should(Equal(0.00041124313405184064))
 	Ω(stats.StdDev()).Should(Equal(0.9988808397330513))
@@ -89,5 +104,27 @@ func BenchmarkStatistics_Update(b *testing.B) {
 	for i := 0; i < b.N; i++ {
 		val := rand.Float64()
 		stats.Update(val)
+	}
+}
+
+func BenchmarkStatistics_Sequential(b *testing.B) {
+	data, _ := loadTestData()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		stats := new(Statistics)
+		for _, val := range data {
+			stats.Update(val)
+		}
+	}
+}
+
+func BenchmarkStatistics_BulkLoad(b *testing.B) {
+	data, _ := loadTestData()
+	b.ResetTimer()
+
+	for i := 0; i < b.N; i++ {
+		stats := new(Statistics)
+		stats.Update(data...)
 	}
 }
