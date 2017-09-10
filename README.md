@@ -1,6 +1,4 @@
-# Toolkit  
-
-[![GoDoc](https://godoc.org/github.com/bbengfort/x?status.svg)](https://godoc.org/github.com/bbengfort/x)
+# Toolkit [![GoDoc](https://godoc.org/github.com/bbengfort/x?status.svg)](https://godoc.org/github.com/bbengfort/x)
 
 **Go packages that are common to many of my projects &mdash; in the spirit of golang.org/x**
 
@@ -29,7 +27,9 @@ This is a single repository that stores many, independent subpackages. This list
 - [net](net/README.md): additional networking packages
 - [peers](peers/README.md): defines and synchronizes remote peers on the network
 - [pid](pid/README.md): manages pid files and background processes
-- [noplog](noplog/README.md): no operation logger to capture internal logging 
+- [noplog](noplog/README.md): no operation logger to capture internal logging
+- [stats](stats/README.md): online computation of summary statistics
+- [console](console/README.md): hierarchical console logging
 
 ### Under Development
 
