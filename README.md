@@ -37,7 +37,7 @@ This is a single repository that stores many, independent subpackages. This list
 The following subpackages are currently under development
 
 - [cfrv](cfrv/README.md): implements conflict-free replicated versions of multiple types.
-- [interval](interval/): better interval and wrapped time.Timer functions
+- [interval](interval/): provides an interface for time based event dispatchers.
 
 ## Tests and Benchmarks
 

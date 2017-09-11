@@ -1,3 +1,6 @@
+/*
+Package interval provides an interface for time based event dispatchers.
+*/
 package interval
 
 import (
