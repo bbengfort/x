@@ -30,6 +30,7 @@ This is a single repository that stores many, independent subpackages. This list
 - [noplog](noplog/README.md): no operation logger to capture internal logging
 - [stats](stats/README.md): online computation of summary statistics
 - [console](console/README.md): hierarchical console logging
+- [events](events/README.md): event dispatcher and callbacks 
 
 ### Under Development
 
