@@ -24,19 +24,20 @@ Generally speaking, these things are simply ported out of my other applications 
 
 This is a single repository that stores many, independent subpackages. This list changes often as common code gets moved from specific projects into this repository.
 
-- [net](net/README.md): additional networking packages
-- [peers](peers/README.md): defines and synchronizes remote peers on the network
-- [pid](pid/README.md): manages pid files and background processes
-- [noplog](noplog/README.md): no operation logger to capture internal logging
-- [stats](stats/README.md): online computation of summary statistics
-- [console](console/README.md): hierarchical console logging
-- [events](events/README.md): event dispatcher and callbacks 
+- [net](net/): additional networking packages
+- [peers](peers/): defines and synchronizes remote peers on the network
+- [pid](pid/): manages pid files and background processes
+- [noplog](noplog/): no operation logger to capture internal logging
+- [stats](stats/): online computation of summary statistics
+- [console](console/): hierarchical console logging
+- [events](events/): event dispatcher and callbacks
 
 ### Under Development
 
 The following subpackages are currently under development
 
 - [cfrv](cfrv/README.md): implements conflict-free replicated versions of multiple types.
+- [interval](interval/): better interval and wrapped time.Timer functions
 
 ## Tests and Benchmarks
 

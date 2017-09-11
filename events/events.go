@@ -10,7 +10,7 @@ import (
 
 // Some standard event types
 const (
-	UnknownEvent EventType = iota
+	UnknownEvent Type = iota
 	TimeoutEvent
 )
 
@@ -23,11 +23,11 @@ var eventTypeStrings = [...]string{
 // Event Types
 //===========================================================================
 
-// EventType is an enumeration of the kind of events that can occur.
-type EventType uint16
+// Type is an enumeration of the kind of events that can occur.
+type Type uint16
 
 // String returns the name of event types
-func (t EventType) String() string {
+func (t Type) String() string {
 	if int(t) < len(eventTypeStrings) {
 		return eventTypeStrings[t]
 	}
@@ -46,17 +46,17 @@ type Callback func(Event) error
 type Dispatcher struct {
 	sync.RWMutex
 	source    interface{}
-	callbacks map[EventType][]Callback
+	callbacks map[Type][]Callback
 }
 
 // Init a dispatcher with the source, creating the callbacks map.
 func (d *Dispatcher) Init(source interface{}) {
 	d.source = source
-	d.callbacks = make(map[EventType][]Callback)
+	d.callbacks = make(map[Type][]Callback)
 }
 
 // Register a callback function for the specified event type.
-func (d *Dispatcher) Register(etype EventType, callback Callback) {
+func (d *Dispatcher) Register(etype Type, callback Callback) {
 	if callback == nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (d *Dispatcher) Register(etype EventType, callback Callback) {
 }
 
 // Remove a callback function for the specified event type.
-func (d *Dispatcher) Remove(etype EventType, callback Callback) {
+func (d *Dispatcher) Remove(etype Type, callback Callback) {
 	d.Lock()
 	defer d.Unlock()
 
@@ -86,14 +86,14 @@ func (d *Dispatcher) Remove(etype EventType, callback Callback) {
 // Dispatch an event, ensuring that the event is properly formatted.
 // Currently this method simply warns if there is an error.
 // TODO: return list of errors or do better error handling.
-func (d *Dispatcher) Dispatch(etype EventType, value interface{}) error {
+func (d *Dispatcher) Dispatch(etype Type, value interface{}) error {
 	d.RLock()
 	defer d.RUnlock()
 	return d.dispatch(etype, value)
 }
 
 // Internal dispatch event that is not thread-safe (surrounded by locks).
-func (d *Dispatcher) dispatch(etype EventType, value interface{}) error {
+func (d *Dispatcher) dispatch(etype Type, value interface{}) error {
 	// Create the event
 	e := &event{
 		etype:  etype,
@@ -118,20 +118,20 @@ func (d *Dispatcher) dispatch(etype EventType, value interface{}) error {
 // Event represents actions that occur during consensus. Listeners can
 // register callbacks with event handlers for specific event types.
 type Event interface {
-	Type() EventType
+	Type() Type
 	Source() interface{}
 	Value() interface{}
 }
 
 // event is an internal implementation of the Event interface.
 type event struct {
-	etype  EventType
+	etype  Type
 	source interface{}
 	value  interface{}
 }
 
 // Type returns the event type.
-func (e *event) Type() EventType {
+func (e *event) Type() Type {
 	return e.etype
 }
 

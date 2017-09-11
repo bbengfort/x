@@ -1,7 +1,7 @@
 package events_test
 
 import (
-	. "github.com/bbengfort/aliahc/alia"
+	. "github.com/bbengfort/x/events"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -9,8 +9,8 @@ import (
 
 var _ = Describe("Event Dispatcher", func() {
 
-	var FooEvent = EventType(42)
-	var BarEvent = EventType(64)
+	var FooEvent = Type(42)
+	var BarEvent = Type(64)
 
 	It("should dispatch events to registered callbacks", func() {
 		dispatcher := new(Dispatcher)
