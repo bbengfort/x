@@ -31,6 +31,7 @@ This is a single repository that stores many, independent subpackages. This list
 - [stats](stats/): online computation of summary statistics
 - [console](console/): hierarchical console logging
 - [events](events/): event dispatcher and callbacks
+- [bandit](bandit/): multi-armed bandit strategies for random choice
 
 ### Under Development
 
