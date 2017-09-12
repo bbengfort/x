@@ -150,6 +150,13 @@ func (s *Benchmark) Serialize() map[string]interface{} {
 	return data
 }
 
+// Append another benchmark object to the current benchmark object,
+// incrementing the distribution from the other object.
+func (s *Benchmark) Append(o *Benchmark) {
+	s.Statistics.Append(&o.Statistics)
+	s.timeouts += o.timeouts
+}
+
 // Internal Helper Method to cast float64 seconds into a duration
 func (s *Benchmark) castSeconds(seconds float64) time.Duration {
 	return time.Duration(float64(time.Second) * seconds)

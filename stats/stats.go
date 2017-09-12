@@ -167,3 +167,25 @@ func (s *Statistics) Serialize() map[string]float64 {
 	data["range"] = s.Range()
 	return data
 }
+
+// Append another statistics object to the current statistics object,
+// incrementing the distribution from the other object.
+func (s *Statistics) Append(o *Statistics) {
+	// Compute minimum and maximum aggregates by comparing both objects,
+	// ensuring that zero valued items are not overriding the comparision.
+	// Must come before any other aggregation.
+	if o.samples > 0 {
+		if o.maximum > s.maximum {
+			s.maximum = o.maximum
+		}
+
+		if s.samples == 0 || o.minimum < s.minimum {
+			s.minimum = o.minimum
+		}
+	}
+
+	// Update the current statistics object
+	s.total += o.total
+	s.samples += o.samples
+	s.squares += o.squares
+}
