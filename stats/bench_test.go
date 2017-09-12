@@ -54,10 +54,10 @@ func ExampleBenchmark() {
 	//   "range": "167.175236ms",
 	//   "samples": 1000000,
 	//   "slowest": "208.394672ms",
-	//   "stddev": "4.019µs",
-	//   "throughput": 8.264893850648793,
-	//   "total": "33h36m33.689461783s",
-	//   "variance": "16.158777ms"
+	//   "stddev": "17.283562ms",
+	//   "throughput": 8.264893850648656,
+	//   "total": "33h36m33.689461785s",
+	//   "variance": "298.721µs"
 	// }
 }
 
@@ -74,8 +74,8 @@ func TestBenchmark(t *testing.T) {
 	}
 
 	Ω(stats.Mean()).Should(Equal(time.Duration(120993689)))
-	// Ω(stats.StdDev()).Should(Equal(time.Duration(17283553)))
-	// Ω(stats.Variance()).Should(Equal(time.Duration(298721221685888)))
+	Ω(stats.StdDev()).Should(Equal(time.Duration(17283562)))
+	Ω(stats.Variance()).Should(Equal(time.Duration(298721)))
 	Ω(stats.Slowest()).Should(Equal(time.Duration(208394672)))
 	Ω(stats.Fastest()).Should(Equal(time.Duration(41219436)))
 	Ω(stats.Range()).Should(Equal(time.Duration(167175236)))
@@ -91,8 +91,8 @@ func TestBenchmarkBulk(t *testing.T) {
 	stats.Update(data...)
 
 	Ω(stats.Mean()).Should(Equal(time.Duration(120993689)))
-	// Ω(stats.StdDev()).Should(Equal(time.Duration(17283553)))
-	// Ω(stats.Variance()).Should(Equal(time.Duration(298721221685888)))
+	Ω(stats.StdDev()).Should(Equal(time.Duration(17283562)))
+	Ω(stats.Variance()).Should(Equal(time.Duration(298721)))
 	Ω(stats.Slowest()).Should(Equal(time.Duration(208394672)))
 	Ω(stats.Fastest()).Should(Equal(time.Duration(41219436)))
 	Ω(stats.Range()).Should(Equal(time.Duration(167175236)))

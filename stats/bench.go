@@ -1,7 +1,6 @@
 package stats
 
 import (
-	"math"
 	"sync"
 	"time"
 )
@@ -19,12 +18,8 @@ import (
 // accesesd from read-locked access methods.
 type Benchmark struct {
 	sync.RWMutex
-	timeouts uint64        // the number of 0 durations (null durations) or timeouts
-	samples  uint64        // number of durations seen
-	total    time.Duration // the sum of all durations
-	squares  uint64        // the sum of the squares of each duration
-	slowest  time.Duration // the slowest (maximum) duration observed
-	fastest  time.Duration // the fastest (minimum) duration observed
+	Statistics
+	timeouts uint64 // the number of 0 durations (null durations) or timeouts
 }
 
 // Update the benchmark with a duration or durations (thread-safe). If a
@@ -42,24 +37,7 @@ func (s *Benchmark) Update(durations ...time.Duration) {
 			continue
 		}
 
-		s.samples++
-		s.total += duration
-		s.squares += (uint64(duration) * uint64(duration))
-
-		// If this is our first sample then this value is both our maximum and
-		// our minimum value. Otherwise, perform comparisions.
-		if s.samples == 1 {
-			s.slowest = duration
-			s.fastest = duration
-		} else {
-			if duration > s.slowest {
-				s.slowest = duration
-			}
-
-			if duration < s.fastest {
-				s.fastest = duration
-			}
-		}
+		s.Statistics.Update(duration.Seconds())
 	}
 }
 
@@ -68,65 +46,56 @@ func (s *Benchmark) Update(durations ...time.Duration) {
 // This metric does not express a duration, so a float64 value is returned
 // instead. If the duration or number of accesses is zero, 0.0 is returned.
 func (s *Benchmark) Throughput() float64 {
+	s.RLock()
+	defer s.RUnlock()
 	if s.samples > 0 && s.total > 0 {
-		return float64(s.samples) / s.total.Seconds()
+		return float64(s.Statistics.samples) / s.Statistics.total
 	}
 	return 0.0
 }
 
-// Mean returns the average for all durations and returns a time.Duration,
-// which is expressed in nanoseconds. This can mean some loss in precision of
-// the mean value, but also allows the caller to compute the mean in varying
-// timescales. Since nanoseconds is a pretty fine granularity for timings,
-// truncating the floating point of the nanosecond seems acceptable.
+// Total returns the total duration recorded across all samples.
+func (s *Benchmark) Total() time.Duration {
+	s.RLock()
+	defer s.RUnlock()
+	return s.castSeconds(s.Statistics.total)
+}
+
+// Mean returns the average for all durations expressed as float64 seconds
+// and returns a time.Duration which is expressed in int64 nanoseconds. This
+// can mean some loss in precision of the mean value, but also allows the
+// caller to compute the mean in varying timescales. Since microseconds is a
+// pretty fine granularity for timings, truncating the floating point of the
+// nanosecond seems acceptable.
 //
 // If no durations have been recorded, a zero valued duration is returned.
 func (s *Benchmark) Mean() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-	if s.samples > 0 {
-		return time.Duration(uint64(s.total) / s.samples)
-	}
-	return time.Duration(0)
+	return s.castSeconds(s.Statistics.Mean())
 }
 
 // Variance computes the variability of samples and describes the distance of
 // the distribution from the mean. This function returns a time.Duration,
-// which can mean a loss in precision lower than the nanosecond level. This
+// which can mean a loss in precision lower than the microsecond level. This
 // is usually acceptable for most applications.
 //
 // If no more than 1 durations were recorded, returns a zero valued duration.
-// TODO: improve the precision of this function (it is incorrect).
 func (s *Benchmark) Variance() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-
-	if s.samples > 1 {
-		num := (s.samples*s.squares - uint64(s.total)*uint64(s.total))
-		den := (s.samples * (s.samples - 1))
-		return time.Duration(float64(num) / float64(den))
-	}
-	return 0.0
+	return s.castSeconds(s.Statistics.Variance())
 }
 
 // StdDev returns the standard deviation of samples, the square root of the
-// variance. This function returns a time.Duration which represents a double
-// loss in precision - a truncation in the variance computation and a
-// truncation when taking the square root. Because this function measures at
-// the nanosecond granularity, this is usually acceptable.
+// variance. This function returns a time.Duration which represents a loss in
+// precision from int64 nanoseconds to float64 seconds.
 //
 // If no more than 1 durations were recorded, returns a zero valued duration.
-//
-// TODO: Improve the precision of this function (it is incorrect).
 func (s *Benchmark) StdDev() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-
-	if s.samples > 1 {
-		return time.Duration(math.Sqrt(float64(s.Variance())))
-	}
-
-	return time.Duration(0)
+	return s.castSeconds(s.Statistics.StdDev())
 }
 
 // Slowest returns the maximum value of durations seen. If no durations have
@@ -134,7 +103,7 @@ func (s *Benchmark) StdDev() time.Duration {
 func (s *Benchmark) Slowest() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-	return s.slowest
+	return s.castSeconds(s.Statistics.Maximum())
 }
 
 // Fastest returns the minimum value of durations seen. If no durations have
@@ -142,7 +111,7 @@ func (s *Benchmark) Slowest() time.Duration {
 func (s *Benchmark) Fastest() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-	return s.fastest
+	return s.castSeconds(s.Statistics.Minimum())
 }
 
 // Range returns the difference between the slowest and fastest durations.
@@ -153,7 +122,7 @@ func (s *Benchmark) Fastest() time.Duration {
 func (s *Benchmark) Range() time.Duration {
 	s.RLock()
 	defer s.RUnlock()
-	return s.slowest - s.fastest
+	return s.castSeconds(s.Statistics.Range())
 }
 
 // Serialize returns a map of summary statistics. This map is useful for
@@ -170,13 +139,18 @@ func (s *Benchmark) Serialize() map[string]interface{} {
 
 	data := make(map[string]interface{})
 	data["samples"] = s.samples
-	data["total"] = s.total.String()
+	data["total"] = s.Total().String()
 	data["mean"] = s.Mean().String()
 	data["stddev"] = s.StdDev().String()
-	data["variance"] = time.Duration(s.Variance()).String()
+	data["variance"] = s.Variance().String()
 	data["fastest"] = s.Fastest().String()
 	data["slowest"] = s.Slowest().String()
 	data["range"] = s.Range().String()
 	data["throughput"] = s.Throughput()
 	return data
+}
+
+// Internal Helper Method to cast float64 seconds into a duration
+func (s *Benchmark) castSeconds(seconds float64) time.Duration {
+	return time.Duration(float64(time.Second) * seconds)
 }
