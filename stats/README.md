@@ -66,3 +66,9 @@ BenchmarkNonBlocking-8   	10000000	       140 ns/op
 ```
 
 As such, the current implementation simply uses thread-safe locks rather than a channel.
+
+## Benchmarks
+
+This package also includes a specialized data structure for computing online statistical distribution of `time.Duration` objects called the `Benchmark`. Similar to the `Statistics` object you can update it, but with `time.Duration` objects, which are then converted into `float64` seconds values using the `time.Duration.Seconds()` method. This reduces the granularity from `int64` nanoseconds, but should still be good at about the microsecond granularity.
+
+The reason for the conversion is because computation with `int64` quickly overflows especially when computing the sum of squares. By converting to a float, the domain of the online distribution is similar to the domain of the `Statistics` object.
