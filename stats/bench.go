@@ -61,6 +61,13 @@ func (s *Benchmark) Total() time.Duration {
 	return s.castSeconds(s.Statistics.total)
 }
 
+// Timeouts returns the number of timeouts recorded across all samples.
+func (s *Benchmark) Timeouts() uint64 {
+	s.RLock()
+	defer s.RUnlock()
+	return s.timeouts
+}
+
 // Mean returns the average for all durations expressed as float64 seconds
 // and returns a time.Duration which is expressed in int64 nanoseconds. This
 // can mean some loss in precision of the mean value, but also allows the

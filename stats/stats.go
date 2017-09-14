@@ -74,11 +74,18 @@ func (s *Statistics) Update(samples ...float64) {
 	}
 }
 
-// N returns the number of samples observed. 
+// N returns the number of samples observed.
 func (s *Statistics) N() uint64 {
-    s.RLock() 
-    defer s.RUnlock()
-    return s.samples
+	s.RLock()
+	defer s.RUnlock()
+	return s.samples
+}
+
+// Total returns the sum of the samples.
+func (s *Statistics) Total() float64 {
+	s.RLock()
+	defer s.RUnlock()
+	return s.total
 }
 
 // Mean returns the average for all samples, computed as the sum of values
