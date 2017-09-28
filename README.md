@@ -32,6 +32,7 @@ This is a single repository that stores many, independent subpackages. This list
 - [console](console/): hierarchical console logging
 - [events](events/): event dispatcher and callbacks
 - [bandit](bandit/): multi-armed bandit strategies for random choice
+- [lock](lock/): provides logging to diagnose lock contention issues
 
 ### Under Development
 
