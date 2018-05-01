@@ -19,7 +19,8 @@ import (
 type Benchmark struct {
 	sync.RWMutex
 	Statistics
-	timeouts uint64 // the number of 0 durations (null durations) or timeouts
+	timeouts uint64        // the number of 0 durations (null durations) or timeouts
+	duration time.Duration // externally set duration of the benchmark
 }
 
 // Update the benchmark with a duration or durations (thread-safe). If a
@@ -41,13 +42,32 @@ func (s *Benchmark) Update(durations ...time.Duration) {
 	}
 }
 
+// SetDuration allows an external setting of the duration. This is especially
+// useful in the case where multiple threads are updating the benchmark and
+// the internal measurement of total time might double count concurrent
+// accesses. In fact it is strongly recommended that this method is called
+// from the external measurerer after all updating is complete.
+func (s *Benchmark) SetDuration(duration time.Duration) {
+	s.duration = duration
+}
+
 // Throughput returns the number of samples per second, measured as the
 // inverse mean: number of samples divided by the total duration in seconds.
+// The duration is computed in two ways:
+//
+//   - if SetDuration is called, that duration is used
+//   - otherwise, the total number of observed seconds is used
+//
 // This metric does not express a duration, so a float64 value is returned
 // instead. If the duration or number of accesses is zero, 0.0 is returned.
 func (s *Benchmark) Throughput() float64 {
 	s.RLock()
 	defer s.RUnlock()
+
+	if s.samples > 0 && s.duration > 0 {
+		return float64(s.Statistics.samples) / s.duration.Seconds()
+	}
+
 	if s.samples > 0 && s.total > 0 {
 		return float64(s.Statistics.samples) / s.Statistics.total
 	}

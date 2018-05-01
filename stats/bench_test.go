@@ -98,6 +98,29 @@ func TestBenchmarkBulk(t *testing.T) {
 	Ω(stats.Range()).Should(Equal(time.Duration(167175236)))
 }
 
+func TestThroughput(t *testing.T) {
+	RegisterTestingT(t)
+
+	stats := new(Benchmark)
+
+	// With no samples, throughput should be zero
+	Ω(stats.Throughput()).Should(Equal(0.0))
+
+	latencies := []time.Duration{
+		175 * time.Millisecond, 250 * time.Millisecond,
+		225 * time.Millisecond, 150 * time.Millisecond,
+		200 * time.Millisecond,
+	}
+
+	// With no specified duration, throughput should equal total
+	stats.Update(latencies...)
+	Ω(stats.Throughput()).Should(BeNumerically("~", 5.0, 0.00001))
+
+	// With a specified duration, throughput should use that duration
+	stats.SetDuration(250 * time.Millisecond)
+	Ω(stats.Throughput()).Should(BeNumerically("~", 20.0, 0.00001))
+}
+
 func TestBenchmarkAppend(t *testing.T) {
 	RegisterTestingT(t)
 
