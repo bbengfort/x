@@ -174,6 +174,8 @@ func (s *Benchmark) Serialize() map[string]interface{} {
 	data["slowest"] = s.Slowest().String()
 	data["range"] = s.Range().String()
 	data["throughput"] = s.Throughput()
+	data["duration"] = s.duration.String()
+	data["timeouts"] = s.timeouts
 	return data
 }
 
