@@ -35,12 +35,10 @@ func TestPeersDump(t *testing.T) {
 	peers.Info["updated"] = time.Now()
 	peers.Peers = []*Peer{
 		{
-			PID: 1, Name: "alpha", Addr: "alpha.example.com:3264",
-			IPAddr: "10.10.10.1", Port: 3264,
+			PID: 1, Name: "alpha", IPAddr: "10.10.10.1", Port: 3264,
 		},
 		{
-			PID: 2, Name: "bravo", Addr: "bravo.example.com:3264",
-			IPAddr: "10.10.10.2", Port: 3264,
+			PID: 2, Name: "bravo", IPAddr: "10.10.10.2", Port: 3264,
 		},
 	}
 

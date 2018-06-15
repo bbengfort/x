@@ -209,7 +209,7 @@ func (p *Peers) Local(hostname string) []*Peer {
 
 	peers := make([]*Peer, 0)
 	for _, peer := range p.Peers {
-		name := strings.Split(peer.Host, ".")[0]
+		name := strings.Split(peer.Hostname, ".")[0]
 		if name == hostname {
 			peers = append(peers, peer)
 		}
@@ -253,12 +253,16 @@ func (p *Peers) Get(hostname string) (*Peer, error) {
 // Peer represents a single instance of another replica process or host on
 // the network that can be communicated with.
 type Peer struct {
-	PID    uint16 `json:"pid"`     // the precedence id of the peer
-	Name   string `json:"name"`    // unique name of the peer
-	Addr   string `json:"address"` // the network address of the peer
-	Host   string `json:"host"`    // the hostname of the peer
-	IPAddr string `json:"ipaddr"`  // the ip address of the peer
-	Port   uint16 `json:"port"`    // the port the replica is listening on
+	PID         uint16 `json:"pid"`                   // the precedence id of the peer
+	Name        string `json:"name"`                  // unique name of the peer
+	Description string `json:"description,omitempty"` // a text description of the peer
+	Hostname    string `json:"hostname,omitempty"`    // the hostname of the peer
+	IPAddr      string `json:"ip_address"`            // the ip address of the peer
+	Domain      string `json:"domain,omitempty"`      // the domain name of hte host
+	Port        uint16 `json:"port"`                  // the port the replica is listening on
+
+	// Extra information that may be associated with the host
+	AWSInstance map[string]string `json:"aws_instance,omitempty"`
 }
 
 // IsLocal returns True if the Peer has the same hostname as the localhost.
@@ -270,7 +274,7 @@ func (p *Peer) IsLocal() bool {
 		return false
 	}
 
-	name := strings.Split(p.Host, ".")[0]
+	name := strings.Split(p.Hostname, ".")[0]
 	return name == hostname
 }
 
