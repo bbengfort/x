@@ -278,7 +278,17 @@ func (p *Peer) IsLocal() bool {
 	return name == hostname
 }
 
-// ZMQEndpoint returns an endpoing to bind or connect on specifically for the
+// Endpoint returns an string with the ip address and the port (or the domain)
+// to connect to the peer using TCP.
+func (p *Peer) Endpoint(dns bool) string {
+	if dns && p.Domain != "" {
+		return fmt.Sprintf("%s:%d", p.Domain, p.Port)
+	}
+
+	return fmt.Sprintf("%s:%d", p.IPAddr, p.Port)
+}
+
+// ZMQEndpoint returns an endpoint to bind or connect on specifically for the
 // ZMQ protocol, that is a TCP protocol socket on the specified port.
 //
 // If server is true, then a bind address of tcp://*:port is returned so that
