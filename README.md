@@ -33,6 +33,7 @@ This is a single repository that stores many, independent subpackages. This list
 - [events](events/): event dispatcher and callbacks
 - [bandit](bandit/): multi-armed bandit strategies for random choice
 - [lock](lock/): provides logging to diagnose lock contention issues
+- [unique](unique/): finds unique elements in a slice
 
 ### Under Development
 
