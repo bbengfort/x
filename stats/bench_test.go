@@ -49,6 +49,7 @@ func ExampleBenchmark() {
 	fmt.Println(string(data))
 	// Output:
 	// {
+	//   "duration": "0s",
 	//   "fastest": "41.219436ms",
 	//   "mean": "120.993689ms",
 	//   "range": "167.175236ms",
@@ -56,6 +57,7 @@ func ExampleBenchmark() {
 	//   "slowest": "208.394672ms",
 	//   "stddev": "17.283562ms",
 	//   "throughput": 8.264893850648656,
+	//   "timeouts": 0,
 	//   "total": "33h36m33.689461785s",
 	//   "variance": "298.721µs"
 	// }

@@ -49,9 +49,9 @@ func ExampleStatistics() {
 	fmt.Println(string(data))
 	// Output:
 	// {
-	//   "maximum": -4.72206033824,
+	//   "maximum": 5.30507026071,
 	//   "mean": 0.00041124313405184064,
-	//   "minimum": 5.30507026071,
+	//   "minimum": -4.72206033824,
 	//   "range": 10.02713059895,
 	//   "samples": 1000000,
 	//   "stddev": 0.9988808397330513,
@@ -72,7 +72,7 @@ func TestStatistics(t *testing.T) {
 		stats.Update(v)
 	}
 
-    Ω(stats.N()).Should(Equal(uint64(1000000)))
+	Ω(stats.N()).Should(Equal(uint64(1000000)))
 	Ω(stats.Mean()).Should(Equal(0.00041124313405184064))
 	Ω(stats.StdDev()).Should(Equal(0.9988808397330513))
 	Ω(stats.Variance()).Should(Equal(0.9977629319858057))
@@ -89,8 +89,8 @@ func TestStatisticsBulk(t *testing.T) {
 
 	stats := new(Statistics)
 	stats.Update(data...)
-    
-    Ω(stats.N()).Should(Equal(uint64(1000000)))
+
+	Ω(stats.N()).Should(Equal(uint64(1000000)))
 	Ω(stats.Mean()).Should(Equal(0.00041124313405184064))
 	Ω(stats.StdDev()).Should(Equal(0.9988808397330513))
 	Ω(stats.Variance()).Should(Equal(0.9977629319858057))

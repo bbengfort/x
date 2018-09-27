@@ -176,8 +176,8 @@ func (s *Statistics) Serialize() map[string]float64 {
 	data["mean"] = s.Mean()
 	data["stddev"] = s.StdDev()
 	data["variance"] = s.Variance()
-	data["minimum"] = s.Maximum()
-	data["maximum"] = s.Minimum()
+	data["minimum"] = s.Minimum()
+	data["maximum"] = s.Maximum()
 	data["range"] = s.Range()
 	return data
 }
