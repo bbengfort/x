@@ -224,7 +224,7 @@ func (p *Peers) Local(hostname string) []*Peer {
 // only return one Peer. Filtering multiple local replicas can be done with
 // a precedence ID. If no ID is specified (e.g. 0) then the first local peer
 // is returned. If no matching peer is found then an error is returned.
-func (p *Peers) Localhost(hostname string, pid uint16) (*Peer, error) {
+func (p *Peers) Localhost(hostname string, pid uint32) (*Peer, error) {
 	for _, peer := range p.Local(hostname) {
 		if pid == 0 || peer.PID == pid {
 			return peer, nil
@@ -253,7 +253,7 @@ func (p *Peers) Get(hostname string) (*Peer, error) {
 // Peer represents a single instance of another replica process or host on
 // the network that can be communicated with.
 type Peer struct {
-	PID         uint16 `json:"pid"`                   // the precedence id of the peer
+	PID         uint32 `json:"pid"`                   // the precedence id of the peer
 	Name        string `json:"name"`                  // unique name of the peer
 	Description string `json:"description,omitempty"` // a text description of the peer
 	Hostname    string `json:"hostname,omitempty"`    // the hostname of the peer

@@ -88,7 +88,7 @@ func TestLocalhost(t *testing.T) {
 	}
 
 	// Find second bravo
-	local, err := peers.Localhost("bravo", uint16(11))
+	local, err := peers.Localhost("bravo", uint32(11))
 	if err != nil {
 		t.Error(err)
 	}
