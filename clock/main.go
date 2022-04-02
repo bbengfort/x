@@ -8,43 +8,48 @@ import (
 
 	"github.com/atotto/clipboard"
 	"github.com/dustin/go-humanize"
-	"gopkg.in/urfave/cli.v1"
+	cli "github.com/urfave/cli/v2"
 )
 
 func main() {
 	app := cli.NewApp()
 	app.Name = "clock"
-	app.Version = "2.0"
+	app.Version = "2.1"
 	app.Usage = "a simple timekeeping utility"
 	app.UsageText = "clock [-ncul] [-tz=<zone>] <fmt>\n   clock [global opts] cmd [cmdopts]"
 	app.Action = clock
 	app.Flags = []cli.Flag{
-		cli.BoolFlag{
-			Name:  "n, noline",
-			Usage: "do not print a newline (useful for pipe)",
+		&cli.BoolFlag{
+			Name:    "noline",
+			Aliases: []string{"n"},
+			Usage:   "do not print a newline (useful for pipe)",
 		},
-		cli.BoolFlag{
-			Name:  "c, copy",
-			Usage: "copy the output to the clipboard for easy paste",
+		&cli.BoolFlag{
+			Name:    "copy",
+			Aliases: []string{"c"},
+			Usage:   "copy the output to the clipboard for easy paste",
 		},
-		cli.StringFlag{
-			Name:   "t, tz",
-			Usage:  "specify the timezone as UTC, Local or an IANA database timezone",
-			Value:  "Local",
-			EnvVar: "TZ",
+		&cli.StringFlag{
+			Name:    "tz",
+			Aliases: []string{"t"},
+			Usage:   "specify the timezone as UTC, Local or an IANA database timezone",
+			Value:   "Local",
+			EnvVars: []string{"TZ"},
 		},
-		cli.BoolFlag{
-			Name:  "u, utc",
-			Usage: "shortcut for -tz=utc",
+		&cli.BoolFlag{
+			Name:    "utc",
+			Aliases: []string{"u"},
+			Usage:   "shortcut for -tz=utc",
 		},
-		cli.BoolFlag{
-			Name:  "l, local",
-			Usage: "shortcut for -tz=local",
+		&cli.BoolFlag{
+			Name:    "local",
+			Aliases: []string{"l"},
+			Usage:   "shortcut for -tz=local",
 		},
 	}
 
 	// Define other commands available to the application
-	app.Commands = []cli.Command{
+	app.Commands = []*cli.Command{
 		{
 			Name:      "after",
 			Usage:     "get the date or time after the specified duration",
@@ -56,6 +61,12 @@ func main() {
 			Usage:     "get the amount of time until the specified date/time",
 			UsageText: "clock [global opts] until [opts] datetime",
 			Action:    until,
+		},
+		{
+			Name:      "fmt",
+			Usage:     "list the named format strings and describe formats",
+			UsageText: "clock fmt",
+			Action:    fmtHelp,
 		},
 	}
 
@@ -78,22 +89,22 @@ func clock(c *cli.Context) (err error) {
 		locName = "UTC"
 	}
 	if loc, err = time.LoadLocation(locName); err != nil {
-		return cli.NewExitError(fmt.Errorf("cannot parse location %q", locName), 1)
+		return cli.Exit(fmt.Errorf("cannot parse location %q", locName), 1)
 	}
 
 	dt := time.Now().In(loc)
 
 	// Determine how to output the time
 	var layout string
-	if layout, err = parseLayout(strings.Join(c.Args(), " ")); err != nil {
-		return cli.NewExitError(err, 1)
+	if layout, err = parseLayout(strings.Join(c.Args().Slice(), " ")); err != nil {
+		return cli.Exit(err, 1)
 	}
 
 	ts := dt.Format(layout)
 
 	if c.Bool("copy") {
 		if clipboard.Unsupported {
-			return cli.NewExitError("clipboard not supported", 1)
+			return cli.Exit("clipboard not supported", 1)
 		}
 		clipboard.WriteAll(ts)
 	} else {
@@ -108,19 +119,19 @@ func clock(c *cli.Context) (err error) {
 }
 
 func after(c *cli.Context) (err error) {
-	return cli.NewExitError("this command has not been implemented yet", 1)
+	return cli.Exit("this command has not been implemented yet", 1)
 }
 
 func until(c *cli.Context) (err error) {
 	// Parse the input date, time or datetime
 	var ts time.Time
-	if ts, err = parseDatetime(strings.Join(c.Args(), " "), c.GlobalString("tz"), c.GlobalBool("local"), c.GlobalBool("utc")); err != nil {
-		return cli.NewExitError(err, 1)
+	if ts, err = parseDatetime(strings.Join(c.Args().Slice(), " "), c.String("tz"), c.Bool("local"), c.Bool("utc")); err != nil {
+		return cli.Exit(err, 1)
 	}
 
 	if c.Bool("copy") {
 		if clipboard.Unsupported {
-			return cli.NewExitError("clipboard not supported", 1)
+			return cli.Exit("clipboard not supported", 1)
 		}
 		clipboard.WriteAll(humanize.Time(ts))
 	} else {
@@ -131,6 +142,37 @@ func until(c *cli.Context) (err error) {
 		}
 	}
 
+	return nil
+}
+
+var fmtHelpStr = `
+The clock command prints out the current timestamp with a specific format so that you
+can use the timestamp in a variety of applications. The most specific way to lay out a
+command is to use the Go time layout by specifying the format via a reference time:
+
+Mon Jan 2 15:04:05 MST 2006
+
+You can also specify one of the following helper formats:
+
+- json (default)
+- code
+- date
+- today
+- blog
+- file
+- ansic
+- ruby
+- unix
+- kitchen
+- rfc3339 (or rfc3339nano)
+- rfc822 (or rfc822z)
+- rfc850
+- rfc1123 (or rfc1123z)
+- stamp (or stampmilli, stampmicro, stampnano)
+`
+
+func fmtHelp(c *cli.Context) (err error) {
+	fmt.Println(strings.TrimSpace(fmtHelpStr))
 	return nil
 }
 
